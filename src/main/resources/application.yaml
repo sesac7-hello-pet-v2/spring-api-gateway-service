@@ -1,8 +1,6 @@
 spring:
   application:
     name: spring-api-gateway-service
-  jwt:
-    secret:
 server:
   servlet:
     context-path: /api
