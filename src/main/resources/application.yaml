@@ -1,9 +1,23 @@
 spring:
   application:
     name: spring-api-gateway-service
-server:
-  servlet:
-    context-path: /api
+  cloud:
+    gateway:
+      mvc:
+        routes:
+          - id: auth-service
+            uri: http://localhost:8081
+            predicates:
+              - Path=/api/v1/auth/** # '/api' 추가
+            filters:
+              - StripPrefix=1       # '/api' 제거 필터 추가
+
+          - id: user-service
+            uri: http://localhost:8082
+            predicates:
+              - Path=/api/v1/users/** # '/api' 추가
+            filters:
+              - StripPrefix=1         # '/api' 제거 필터 추가
 
 jwt:
-  secret: "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970"
+  secret: "hellopethellopethellopethellopethellopethellopethellopethellopethellopethellopethellopet"
