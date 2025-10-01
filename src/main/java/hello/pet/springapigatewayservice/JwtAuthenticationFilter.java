@@ -49,30 +49,39 @@ public class JwtAuthenticationFilter implements Filter {
 
         // JWT에서 사용자 ID 추출하여 헤더에 추가
         Long userId = jwtProvider.getUserIdFromToken(token);
+        String role = jwtProvider.getRoleFromToken(token);
         if (userId != null) {
-            CustomHttpServletRequestWrapper requestWrapper = new CustomHttpServletRequestWrapper(httpRequest, userId);
+            CustomHttpServletRequestWrapper requestWrapper = new CustomHttpServletRequestWrapper(httpRequest, userId, role);
             log.info("JWT Filter: Valid token, adding X-User-Id: {}", userId);
+            log.info("JWT Filter: Valid token, adding X-Role: {}", role);
             filterChain.doFilter(requestWrapper, httpResponse);
         } else {
             log.info("JWT Filter: Unable to extract userId from token");
             httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             httpResponse.getWriter().write("{\"error\":\"Invalid token claims\"}");
         }
+
+
     }
 
     private static class CustomHttpServletRequestWrapper extends jakarta.servlet.http.HttpServletRequestWrapper {
 
         private final Long userId;
+        private final String role;
 
-        public CustomHttpServletRequestWrapper(HttpServletRequest request, Long userId) {
+        public CustomHttpServletRequestWrapper(HttpServletRequest request, Long userId, String role) {
             super(request);
             this.userId = userId;
+            this.role = role;
         }
 
         @Override
         public String getHeader(String name) {
             if ("X-User-Id".equals(name)) {
                 return String.valueOf(userId);
+            }
+            if ("X-User-Role".equals(name)) {
+                return role;
             }
             return super.getHeader(name);
         }
@@ -85,6 +94,7 @@ public class JwtAuthenticationFilter implements Filter {
                 headerNames.add(originalNames.nextElement());
             }
             headerNames.add("X-User-Id");
+            headerNames.add("X-User-Role");
             return Collections.enumeration(headerNames);
         }
 
@@ -92,6 +102,9 @@ public class JwtAuthenticationFilter implements Filter {
         public Enumeration<String> getHeaders(String name) {
             if ("X-User-Id".equals(name)) {
                 return Collections.enumeration(Collections.singletonList(String.valueOf(userId)));
+            }
+            if ("X-User-Role".equals(name)) {
+                return Collections.enumeration(Collections.singletonList(role));
             }
             return super.getHeaders(name);
         }
