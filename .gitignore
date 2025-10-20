@@ -38,3 +38,8 @@ out/
 
 *.yml
 *.yaml
+.claude/
+
+# GitHub Actions 워크플로우는 추적
+!.github/workflows/*.yml
+!.github/workflows/*.yaml
