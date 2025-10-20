@@ -9,8 +9,8 @@ on:
 
 # 워크플로우에 필요한 권한 설정
 permissions:
-  contents: read      # 리포지토리 코드를 checkout 하기 위함
-  id-token: write     # AWS OIDC 인증을 위함
+  contents: read # 리포지토리 코드를 checkout 하기 위함
+  id-token: write # AWS OIDC 인증을 위함
 
 jobs:
   build-and-deploy:
