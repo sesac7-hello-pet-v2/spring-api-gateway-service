@@ -59,49 +59,48 @@ jobs:
           tags: ${{ steps.ecr-image.outputs.uri }}
 
       # ==================================
-      # 7. Manifest 리포지토리 업데이트 (주석 처리)
+      # 7. Manifest 리포지토리 업데이트
       # ==================================
 
-      # # 7-1. Manifest 리포지토리 체크아웃 (별도 경로에)
-      # - name: Checkout Manifest Repo
-      #   uses: actions/checkout@v4
-      #   with:
-      #     repository: ${{ secrets.MANIFEST_REPO }}
-      #     token: ${{ secrets.MANIFEST_REPO_PAT }}
-      #     path: 'manifest-repo' # 충돌 방지를 위해 하위 디렉토리에 체크아웃
+      # 7-1. Manifest 리포지토리 체크아웃 (별도 경로에)
+      - name: Checkout Manifest Repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ secrets.MANIFEST_REPO }}
+          token: ${{ secrets.MANIFEST_REPO_PAT }}
+          path: 'manifest-repo' # 충돌 방지를 위해 하위 디렉토리에 체크아웃
 
-      # # 7-2. Manifest 파일의 이미지 태그 업데이트 (yq 사용)
-      # - name: Update Manifest File (using yq)
-      #   run: |
-      #     # yq 설치
-      #     sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
-      #     sudo chmod +x /usr/bin/yq
+      # 7-2. Manifest 파일의 이미지 태그 업데이트 (yq 사용)
+      - name: Update Manifest File (using yq)
+        run: |
+          # yq 설치
+          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+          sudo chmod +x /usr/bin/yq
 
-      #     MANIFEST_FILE_PATH="manifest-repo/${{ secrets.MANIFEST_FILE_PATH }}"
-      #     NEW_TAG="${{ steps.image-tag.outputs.tag }}" # 예: 039b947
+          MANIFEST_FILE_PATH="manifest-repo/${{ secrets.MANIFEST_FILE_PATH }}"
+          NEW_TAG="${{ steps.image-tag.outputs.tag }}" # 예: 039b947
 
-      #     echo "Updating $MANIFEST_FILE_PATH with new tag: $NEW_TAG"
+          echo "Updating $MANIFEST_FILE_PATH with new tag: $NEW_TAG"
 
-      #     # yq를 사용해 spec.source.helm.parameters 배열에서
-      #     # name이 'image.tag'인 항목을 찾아 그 'value'를 NEW_TAG로 변경
-      #     yq -i '.spec.source.helm.parameters[] |= select(.name == "image.tag").value = "'${NEW_TAG}'"' ${MANIFEST_FILE_PATH}
+          # values.yaml의 image.tag를 직접 업데이트
+          yq -i '.image.tag = "'${NEW_TAG}'"' ${MANIFEST_FILE_PATH}
 
-      #     echo "Manifest file updated:"
-      #     cat ${MANIFEST_FILE_PATH}
+          echo "Manifest file updated:"
+          cat ${MANIFEST_FILE_PATH}
 
-      # # 7-3. 변경 사항 커밋 및 푸시
-      # - name: Commit and Push to Manifest Repo
-      #   run: |
-      #     cd manifest-repo
-      #     git config --global user.name 'GitHub Actions Bot'
-      #     git config --global user.email 'github-actions-bot@users.noreply.github.com'
-      #     git add .
+      # 7-3. 변경 사항 커밋 및 푸시
+      - name: Commit and Push to Manifest Repo
+        run: |
+          cd manifest-repo
+          git config --global user.name 'GitHub Actions Bot'
+          git config --global user.email 'github-actions-bot@users.noreply.github.com'
+          git add .
 
-      #     # 커밋할 변경 사항이 있는지 확인
-      #     if git diff-index --quiet HEAD; then
-      #       echo "No changes to commit."
-      #     else
-      #       git commit -m "Update api-gateway image to ${{ steps.image-tag.outputs.tag }}"
-      #       git push
-      #       echo "Changes pushed to manifest repo."
-      #     fi
+          # 커밋할 변경 사항이 있는지 확인
+          if git diff-index --quiet HEAD; then
+            echo "No changes to commit."
+          else
+            git commit -m "Update api-gateway image to ${{ steps.image-tag.outputs.tag }}"
+            git push
+            echo "Changes pushed to manifest repo."
+          fi
