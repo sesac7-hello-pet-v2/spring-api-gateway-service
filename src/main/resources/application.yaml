@@ -19,5 +19,26 @@ spring:
             filters:
               - StripPrefix=1         # '/api' 제거 필터 추가
 
+          - id: application-service
+            uri: http://localhost:8089
+            predicates:
+              - Path=/api/v1/applications/** # '/api' 추가
+            filters:
+              - StripPrefix=1         # '/api' 제거 필터 추가
+
+          - id: announcement-service
+            uri: http://localhost:8084
+            predicates:
+              - Path=/api/v1/announcements/** # '/api' 추가
+            filters:
+              - StripPrefix=1         # '/api' 제거 필터 추가
+
+          - id: pet-service
+            uri: http://localhost:8085
+            predicates:
+              - Path=/api/v1/pets/** # '/api' 추가
+            filters:
+              - StripPrefix=1         # '/api' 제거 필터 추가
+
 jwt:
   secret: "hellopethellopethellopethellopethellopethellopethellopethellopethellopethellopethellopet"
