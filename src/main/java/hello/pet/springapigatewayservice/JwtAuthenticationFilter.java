@@ -26,17 +26,17 @@ public class JwtAuthenticationFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) servletRequest;
         HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
 
-        // CORS 헤더를 먼저 추가 (401 에러 시에도 CORS 헤더가 포함되도록)
-        String origin = httpRequest.getHeader("Origin");
-        if (origin != null && (origin.equals("https://cotask.shop") ||
-                               origin.equals("http://cotask.shop") ||
-                               origin.equals("http://localhost:3000"))) {
-            httpResponse.setHeader("Access-Control-Allow-Origin", origin);
-            httpResponse.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-            httpResponse.setHeader("Access-Control-Allow-Headers", "*");
-            httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
-            httpResponse.setHeader("Access-Control-Max-Age", "3600");
-        }
+//        // CORS 헤더를 먼저 추가 (401 에러 시에도 CORS 헤더가 포함되도록)
+//        String origin = httpRequest.getHeader("Origin");
+//        if (origin != null && (origin.equals("https://cotask.shop") ||
+//                               origin.equals("http://cotask.shop") ||
+//                               origin.equals("http://localhost:3000"))) {
+//            httpResponse.setHeader("Access-Control-Allow-Origin", origin);
+//            httpResponse.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+//            httpResponse.setHeader("Access-Control-Allow-Headers", "*");
+//            httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
+//            httpResponse.setHeader("Access-Control-Max-Age", "3600");
+//        }
 
         String path = httpRequest.getRequestURI();
         String method = httpRequest.getMethod();
