@@ -31,9 +31,7 @@ public class PublicPathMatcher {
                 "/api/v1/announcements",           // 공지사항 목록
                 "/api/v1/announcements/**",        // 공지사항 상세
                 "/api/posts",                       // 게시글 목록
-                "/api/posts/**",                    // 게시글 상세
-                "/api/v1/pets",                     // 펫 목록
-                "/api/v1/pets/**"                   // 펫 상세
+                "/api/posts/**"                    // 게시글 상세
         ));
     }
 
