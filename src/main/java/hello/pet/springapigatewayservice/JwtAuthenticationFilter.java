@@ -1,17 +1,22 @@
 package hello.pet.springapigatewayservice;
 
-import jakarta.servlet.*;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.springframework.stereotype.Component;
+
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -43,9 +48,25 @@ public class JwtAuthenticationFilter implements Filter {
 
         log.info("JWT Filter - Path: {}, Method: {}", path, method);
 
-        // 공개 경로는 인증 없이 통과
+		// 공개 경로 처리 - 로그인한 경우 사용자 정보를 추가로 전달
         if (publicPathMatcher.isPublicPath(path, method)) {
-            log.info("JWT Filter: Public path, allowing request");
+			log.info("JWT Filter: Public path detected");
+
+			// 공개 경로이지만 JWT 토큰이 있는 경우 사용자 정보를 전달
+			String token = jwtProvider.extractTokenFromRequest(httpRequest);
+			if (token != null && jwtProvider.validateToken(token)) {
+				Long userId = jwtProvider.getUserIdFromToken(token);
+				String role = jwtProvider.getRoleFromToken(token);
+				if (userId != null) {
+					CustomHttpServletRequestWrapper requestWrapper = new CustomHttpServletRequestWrapper(httpRequest,
+						userId, role);
+					log.info("JWT Filter: Public path with valid token, adding X-User-Id: {}", userId);
+					filterChain.doFilter(requestWrapper, httpResponse);
+					return;
+				}
+			}
+
+			log.info("JWT Filter: Public path without valid token, allowing request");
             filterChain.doFilter(httpRequest, httpResponse);
             return;
         }
