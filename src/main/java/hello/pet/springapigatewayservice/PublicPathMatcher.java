@@ -17,7 +17,7 @@ public class PublicPathMatcher {
             "/api/v1/auth/logout",
             "/api/v1/auth/refresh",
             "/api/v1/users/exist",
-            "/actuator/health"
+            "/actuator/**"
     );
 
     private static final Map<String, List<String>> PUBLIC_PATHS_BY_METHOD = new HashMap<>();
@@ -31,7 +31,9 @@ public class PublicPathMatcher {
                 "/api/v1/announcements",           // 공지사항 목록
                 "/api/v1/announcements/**",        // 공지사항 상세
                 "/api/posts",                       // 게시글 목록
-                "/api/posts/**"                    // 게시글 상세
+                "/api/posts/**",                    // 게시글 상세
+                "/api/v1/pets",                     // 펫 목록
+                "/api/v1/pets/**"                   // 펫 상세
         ));
     }
 
