@@ -1,60 +1,76 @@
 package hello.pet.springapigatewayservice;
 
-import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
-import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 import org.springframework.core.Ordered;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Custom Gateway Filter to handle multipart/form-data requests properly
+ * Custom Filter to handle multipart/form-data requests properly in Spring Cloud Gateway MVC
  * This filter preserves the Content-Type header with boundary information
  */
 @Component
-public class MultipartGatewayFilter extends AbstractGatewayFilterFactory<MultipartGatewayFilter.Config> implements Ordered {
-
-    public MultipartGatewayFilter() {
-        super(Config.class);
-    }
+public class MultipartGatewayFilter implements Filter, Ordered {
 
     @Override
-    public GatewayFilter apply(Config config) {
-        return (exchange, chain) -> {
-            ServerHttpRequest request = exchange.getRequest();
-            HttpHeaders headers = request.getHeaders();
-            MediaType contentType = headers.getContentType();
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+
+        if (request instanceof HttpServletRequest) {
+            HttpServletRequest httpRequest = (HttpServletRequest) request;
+            String contentType = httpRequest.getContentType();
 
             // Check if this is a multipart request
-            if (contentType != null && contentType.includes(MediaType.MULTIPART_FORM_DATA)) {
-                // Preserve the original Content-Type with boundary
-                String originalContentType = headers.getFirst(HttpHeaders.CONTENT_TYPE);
+            if (contentType != null && contentType.startsWith(MediaType.MULTIPART_FORM_DATA_VALUE)) {
+                // Wrap the request to preserve headers
+                HttpServletRequestWrapper wrapper = new HttpServletRequestWrapper(httpRequest) {
+                    private final Map<String, String> customHeaders = new HashMap<>();
 
-                ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
-                    .header(HttpHeaders.CONTENT_TYPE, originalContentType)
-                    .build();
+                    {
+                        // Preserve the original Content-Type with boundary
+                        customHeaders.put("Content-Type", contentType);
+                    }
 
-                ServerWebExchange mutatedExchange = exchange.mutate()
-                    .request(mutatedRequest)
-                    .build();
+                    @Override
+                    public String getHeader(String name) {
+                        String header = customHeaders.get(name);
+                        return (header != null) ? header : super.getHeader(name);
+                    }
 
-                return chain.filter(mutatedExchange);
+                    @Override
+                    public Enumeration<String> getHeaders(String name) {
+                        String header = customHeaders.get(name);
+                        if (header != null) {
+                            return Collections.enumeration(Collections.singletonList(header));
+                        }
+                        return super.getHeaders(name);
+                    }
+
+                    @Override
+                    public String getContentType() {
+                        return contentType;
+                    }
+                };
+
+                chain.doFilter(wrapper, response);
+            } else {
+                chain.doFilter(request, response);
             }
-
-            return chain.filter(exchange);
-        };
+        } else {
+            chain.doFilter(request, response);
+        }
     }
 
     @Override
     public int getOrder() {
         return Ordered.HIGHEST_PRECEDENCE;
-    }
-
-    public static class Config {
-        // Configuration properties if needed
     }
 }
